@@ -2,17 +2,16 @@
 
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabaseClient'
+import type { User } from '@supabase/supabase-js'
 
 export default function AuthStatus() {
-  const [user, setUser] = useState<any>(null)
+  const [user, setUser] = useState<User | null>(null)
 
   useEffect(() => {
-    // Récupérer l'utilisateur connecté au chargement
     supabase.auth.getUser().then(({ data }) => {
       setUser(data.user)
     })
 
-    // Surveiller les changements de session (connexion/déconnexion)
     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null)
     })
