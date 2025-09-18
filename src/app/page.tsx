@@ -4,6 +4,12 @@ import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabaseClient'
 import AuthForm from '@/components/AuthForm'
 import AuthStatus from '@/components/AuthStatus'
+import Link from 'next/link'
+
+// dans le JSX
+<Link href="/dashboard" className="block text-center mt-6 text-blue-600 underline">
+  Accéder au tableau de bord
+</Link>
 
 export default function Home() {
   const [user, setUser] = useState<any>(null)
