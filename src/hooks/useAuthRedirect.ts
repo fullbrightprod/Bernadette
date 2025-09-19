@@ -1,45 +1,44 @@
 "use client"
 
-import { useEffect } from "react"
-import { useRouter, usePathname } from "next/navigation"
+import { useEffect, useState } from "react"
 import { supabase } from "@/lib/supabaseClient"
+import { useRouter } from "next/navigation"
 
-const publicRoutes = ["/login"]
-
-export function useAuthRedirect() {
+export function useAuthUser() {
+  const [user, setUser] = useState<any | null>(null)
+  const [loading, setLoading] = useState(true)
   const router = useRouter()
-  const pathname = usePathname()
 
   useEffect(() => {
-    async function checkSession() {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession()
+    async function loadUser() {
+      const { data: { user } } = await supabase.auth.getUser()
 
-      if (!session && !publicRoutes.includes(pathname)) {
-        // Pas connecté → /login
+      if (!user) {
+        setUser(null)
         router.push("/login")
-      } else if (session && pathname === "/login") {
-        // Déjà connecté mais sur /login → /
-        router.push("/")
+      } else {
+        setUser(user)
       }
+
+      setLoading(false)
     }
 
-    checkSession()
+    loadUser()
 
-    // 🔄 Ecoute les changements de session (login / logout)
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (!session && !publicRoutes.includes(pathname)) {
+    // ✅ écoute login/logout
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) {
+        setUser(session.user)
+      } else {
+        setUser(null)
         router.push("/login")
-      } else if (session && pathname === "/login") {
-        router.push("/")
       }
     })
 
     return () => {
-      subscription.unsubscribe()
+      listener.subscription.unsubscribe()
     }
-  }, [router, pathname])
+  }, [router])
+
+  return { user, loading }
 }

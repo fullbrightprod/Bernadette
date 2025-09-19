@@ -1,30 +1,108 @@
 "use client"
+
 import Link from "next/link"
-import { Home, Folder, FileText, HelpCircle, Settings, LogOut } from "lucide-react"
+import { useEffect, useState } from "react"
 import { supabase } from "@/lib/supabaseClient"
 import { useRouter } from "next/navigation"
 
+import { Home, Folder, FileText, HelpCircle, Settings, LogOut } from "lucide-react"
+
 export function Sidebar() {
+  const [email, setEmail] = useState<string | null>(null)
+  const [loading, setLoading] = useState(true)
   const router = useRouter()
+
+  useEffect(() => {
+    async function loadUser() {
+      const { data: { user } } = await supabase.auth.getUser()
+
+      if (!user) {
+        setEmail(null)
+        router.push("/login")
+      } else {
+        setEmail(user.email ?? null)
+      }
+
+      setLoading(false)
+    }
+
+    loadUser()
+
+    // ✅ écoute les changements d’auth (login/logout)
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) {
+        setEmail(session.user.email)
+      } else {
+        setEmail(null)
+        router.push("/login")
+      }
+    })
+
+    return () => {
+      listener.subscription.unsubscribe()
+    }
+  }, [router])
+
   async function handleLogout() {
     await supabase.auth.signOut()
+    setEmail(null) // ✅ efface tout de suite l’email
     router.push("/login")
   }
-  return (
-    <aside className="bg-primary text-white w-64 min-h-screen p-4 flex flex-col justify-between">
-      <div>
-        <h2 className="text-xl font-bold">Bernadette</h2>
-        <nav className="flex flex-col gap-3 mt-6">
-          <Link href="/" className="flex items-center gap-2"><Home size={18}/> Accueil</Link>
-          <Link href="/projets" className="flex items-center gap-2"><Folder size={18}/> Mes projets</Link>
-          <Link href="/contenus" className="flex items-center gap-2"><FileText size={18}/> Mes contenus</Link>
-          <Link href="/aide" className="flex items-center gap-2"><HelpCircle size={18}/> Aide</Link>
-          <Link href="/parametres" className="flex items-center gap-2"><Settings size={18}/> Paramètres</Link>
-        </nav>
+
+  if (loading) {
+    return (
+      <div className="w-64 bg-[#154C79] text-white flex flex-col p-4 min-h-screen">
+        <p>Chargement...</p>
       </div>
-      <button onClick={handleLogout} className="flex items-center gap-2 mt-6 text-red-200 hover:text-white">
-        <LogOut size={18}/> Se déconnecter
-      </button>
-    </aside>
+    )
+  }
+
+  return (
+    <div className="w-64 bg-[#154C79] text-white flex flex-col p-4 min-h-screen">
+      <h1 className="text-2xl font-bold mb-6">📊 Bernadette</h1>
+
+      {/* ✅ Email utilisateur connecté */}
+      {email && (
+        <div className="mb-6 text-sm bg-[#123a5f] p-2 rounded">
+          Connecté en tant que<br />
+          <span className="font-semibold">{email}</span>
+        </div>
+      )}
+
+      {/* Menu principal */}
+      <nav className="flex-1 space-y-2">
+        <Link href="/" className="flex items-center gap-2 hover:bg-[#123a5f] p-2 rounded">
+          <Home size={18} /> Dashboard
+        </Link>
+        <Link href="/persona" className="flex items-center gap-2 hover:bg-[#123a5f] p-2 rounded">
+          <Folder size={18} /> Personas
+        </Link>
+        <Link href="/da" className="flex items-center gap-2 hover:bg-[#123a5f] p-2 rounded">
+          <FileText size={18} /> Direction Artistique
+        </Link>
+        <Link href="/contenus" className="flex items-center gap-2 hover:bg-[#123a5f] p-2 rounded">
+          <FileText size={18} /> Contenus
+        </Link>
+        <Link href="/diffusion" className="flex items-center gap-2 hover:bg-[#123a5f] p-2 rounded">
+          <FileText size={18} /> Diffusion
+        </Link>
+      </nav>
+
+      {/* Bas de sidebar */}
+      <div className="mt-auto space-y-2">
+        <button
+          onClick={handleLogout}
+          className="flex items-center gap-2 hover:bg-[#123a5f] p-2 rounded w-full text-left"
+        >
+          <LogOut size={18} /> Déconnexion
+        </button>
+        <Link href="/settings" className="flex items-center gap-2 hover:bg-[#123a5f] p-2 rounded">
+          <Settings size={18} /> Paramètres
+        </Link>
+        <Link href="/help" className="flex items-center gap-2 hover:bg-[#123a5f] p-2 rounded">
+          <HelpCircle size={18} /> Aide
+        </Link>
+      </div>
+    </div>
   )
 }
