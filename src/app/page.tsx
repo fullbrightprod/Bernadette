@@ -1,28 +1,23 @@
-'use client'
+import { CardModule } from "@/components/CardModule"
+import { ProgressBar } from "@/components/ProgressBar"
 
-import { useEffect, useState } from 'react'
-import { supabase } from '@/lib/supabaseClient'
-import AuthForm from '@/components/AuthForm'
-import AuthStatus from '@/components/AuthStatus'
-import type { User } from '@supabase/supabase-js'
-
-export default function Home() {
-  const [user, setUser] = useState<User | null>(null)
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
-      setUser(data.user)
-      setLoading(false)
-    })
-  }, [])
-
-  if (loading) return <p className="p-10 text-center">Chargement...</p>
-
+export default function Dashboard() {
   return (
-    <main className="p-10">
-      <h1 className="text-2xl font-bold mb-6 text-center">🔐 Authentification</h1>
-      {user ? <AuthStatus /> : <AuthForm />}
-    </main>
+    <div className="flex flex-col gap-6 p-6">
+      <h1 className="text-2xl font-bold text-[#154C79]">
+        Bienvenue sur Bernadette 👋
+      </h1>
+
+      {/* Barre de progression */}
+      <ProgressBar value={35} />
+
+      {/* Cartes modules */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <CardModule title="🎯 Persona" link="/persona" color="bg-[#EAB676]" />
+        <CardModule title="🎨 Direction artistique" link="/da" color="bg-[#EAB676]" />
+        <CardModule title="✍️ Contenus & scripts" link="/contenus" color="bg-[#EAB676]" />
+        <CardModule title="📢 Diffusion" link="/diffusion" color="bg-[#EAB676]" />
+      </div>
+    </div>
   )
 }
