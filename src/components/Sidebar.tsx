@@ -20,7 +20,7 @@ export function Sidebar() {
         setEmail(null)
         router.push("/login")
       } else {
-        setEmail(user.email ?? null)
+        setEmail(user.email ?? null) // ✅ évite undefined
       }
 
       setLoading(false)
@@ -31,7 +31,7 @@ export function Sidebar() {
     // ✅ écoute les changements d’auth (login/logout)
     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session?.user) {
-        setEmail(session.user.email)
+        setEmail(session.user.email ?? null) // ✅ évite undefined
       } else {
         setEmail(null)
         router.push("/login")
