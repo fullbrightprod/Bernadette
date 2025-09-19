@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react"
 import { supabase } from "@/lib/supabaseClient"
 import { useRouter } from "next/navigation"
+import { User } from "@supabase/supabase-js"
 
 export function useAuthUser() {
   const [user, setUser] = useState<any | null>(null)
