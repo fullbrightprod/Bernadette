@@ -17,20 +17,21 @@ export default function LoginPage() {
       password,
     })
 
-  if (error) {
-  setMessage("❌ " + error.message)
-} else {
-  setMessage("Connexion réussie ✅")
-  // force la mise à jour de la session dans les cookies
-  if (data.session) {
-    await supabase.auth.setSession({
-      access_token: data.session.access_token,
-      refresh_token: data.session.refresh_token,
-    })
-  }
-  // redirection vers dashboard
-  router.push("/")
-}
+    if (error) {
+      setMessage("❌ " + error.message)
+    } else {
+      setMessage("Connexion réussie ✅")
+      // force la mise à jour de la session dans les cookies
+      if (data.session) {
+        await supabase.auth.setSession({
+          access_token: data.session.access_token,
+          refresh_token: data.session.refresh_token,
+        })
+      }
+      // redirection vers dashboard
+      router.push("/")
+    }
+  } // ⬅️ ICI tu avais oublié de fermer la fonction
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100">
@@ -65,3 +66,4 @@ export default function LoginPage() {
       </form>
     </div>
   )
+}
