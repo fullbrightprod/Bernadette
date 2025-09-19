@@ -2,6 +2,8 @@
 
 import { useAuthRedirect } from "@/hooks/useAuthRedirect"
 import { Sidebar } from "@/components/Sidebar"
+import "./globals.css";
+
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   useAuthRedirect()
