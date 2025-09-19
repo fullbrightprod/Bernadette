@@ -8,6 +8,7 @@ export default function LoginPage() {
   const router = useRouter()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
+  const [message, setMessage] = useState("")
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault()
@@ -15,10 +16,12 @@ export default function LoginPage() {
       email,
       password,
     })
+
     if (error) {
-      alert(error.message)
+      setMessage("❌ " + error.message)
     } else {
-      // ✅ après login → dashboard
+      setMessage("Connexion réussie ✅")
+      // ⬅️ Ajout de la redirection après login
       router.push("/")
     }
   }
@@ -29,7 +32,7 @@ export default function LoginPage() {
         onSubmit={handleLogin}
         className="bg-white p-6 rounded shadow-md w-80 flex flex-col gap-4"
       >
-        <h1 className="text-xl font-bold text-[#154C79] text-center">Connexion</h1>
+        <h1 className="text-xl font-bold text-[#154C79] text-center">🔐 Authentification</h1>
         <input
           type="email"
           placeholder="Email"
@@ -50,6 +53,7 @@ export default function LoginPage() {
         >
           Se connecter
         </button>
+        {message && <p className="text-center">{message}</p>}
       </form>
     </div>
   )
