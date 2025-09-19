@@ -19,19 +19,20 @@ export default function LoginPage() {
 
     if (error) {
       setMessage("❌ " + error.message)
-    } else {
+    } else if (data.session) {
+      // ✅ enregistre la session dans Supabase client (cookies)
+      await supabase.auth.setSession({
+        access_token: data.session.access_token,
+        refresh_token: data.session.refresh_token,
+      })
+
+      // ✅ enregistre aussi en localStorage (sécurité supplémentaire)
+      localStorage.setItem("supabase.auth.token", JSON.stringify(data.session))
+
       setMessage("Connexion réussie ✅")
-      // force la mise à jour de la session dans les cookies
-      if (data.session) {
-        await supabase.auth.setSession({
-          access_token: data.session.access_token,
-          refresh_token: data.session.refresh_token,
-        })
-      }
-      // redirection vers dashboard
       router.push("/")
     }
-  } // ⬅️ ICI tu avais oublié de fermer la fonction
+  }
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100">
