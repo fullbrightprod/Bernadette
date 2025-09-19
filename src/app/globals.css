@@ -1,17 +1,17 @@
 @import "tailwindcss";
 
+/* 🎨 Variables globales */
 :root {
   --background: #ffffff;
   --foreground: #171717;
+
+  /* Couleurs Bernadette */
+  --color-primary: #154C79;   /* Bleu principal */
+  --color-secondary: #EAB676; /* Beige secondaire */
+  --color-accent: #4CAF50;    /* Vert accent */
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
+/* 🌙 Mode sombre */
 @media (prefers-color-scheme: dark) {
   :root {
     --background: #0a0a0a;
@@ -19,8 +19,22 @@
   }
 }
 
+/* ⚡ Définition des thèmes Tailwind inline */
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+
+  --color-primary: var(--color-primary);
+  --color-secondary: var(--color-secondary);
+  --color-accent: var(--color-accent);
+
+  --font-sans: var(--font-geist-sans), sans-serif;
+  --font-mono: var(--font-geist-mono), monospace;
+}
+
+/* 🖌️ Style global du body */
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans);
 }
