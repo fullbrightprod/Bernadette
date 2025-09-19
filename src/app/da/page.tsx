@@ -3,10 +3,18 @@
 import { useEffect, useState } from "react"
 import { supabase } from "@/lib/supabaseClient"
 import { useAuthUser } from "../../hooks/useAuthUser"
+type DirectionArtistique = {
+  id: string
+  style: string
+  colors: string[]
+  user_id: string
+}
+
+
 
 export default function DaPage() {
+  const [daList, setDaList] = useState<DirectionArtistique[]>([])
   const { user, loading } = useAuthUser()
-  const [daList, setDaList] = useState<any[]>([])
   const [style, setStyle] = useState("")
   const [colors, setColors] = useState("")
 

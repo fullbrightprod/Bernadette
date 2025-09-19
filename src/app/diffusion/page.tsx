@@ -3,11 +3,19 @@
 import { useEffect, useState } from "react"
 import { supabase } from "@/lib/supabaseClient"
 import { useAuthUser } from "../../hooks/useAuthUser"
+type Diffusion = {
+  id: string
+  platform: string
+  status: "draft" | "scheduled" | "published"
+  user_id: string
+}
+
+
 
 
 export default function DiffusionPage() {
+  const [diffusions, setDiffusions] = useState<Diffusion[]>([])
   const { user, loading } = useAuthUser()
-  const [diffusions, setDiffusions] = useState<any[]>([])
   const [platform, setPlatform] = useState("")
   const [status, setStatus] = useState("draft")
 

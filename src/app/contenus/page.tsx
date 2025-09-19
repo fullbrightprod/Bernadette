@@ -3,10 +3,18 @@
 import { useEffect, useState } from "react"
 import { supabase } from "@/lib/supabaseClient"
 import { useAuthUser } from "../../hooks/useAuthUser"
+type Contenu = {
+  id: string
+  title: string
+  script: string
+  user_id: string
+}
+
+
 
 export default function ContenusPage() {
+  const [contenus, setContenus] = useState<Contenu[]>([])
   const { user, loading } = useAuthUser()
-  const [contenus, setContenus] = useState<any[]>([])
   const [title, setTitle] = useState("")
   const [script, setScript] = useState("")
 

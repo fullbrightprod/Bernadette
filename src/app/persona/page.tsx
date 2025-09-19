@@ -3,10 +3,18 @@
 import { useEffect, useState } from "react"
 import { supabase } from "@/lib/supabaseClient"
 import { useAuthUser } from "../../hooks/useAuthUser"
+type Persona = {
+  id: string
+  name: string
+  description: string
+  user_id: string
+}
+
+
 
 export default function PersonaPage() {
+  const [personas, setPersonas] = useState<Persona[]>([]) // ✅ plus de any
   const { user, loading } = useAuthUser()
-  const [personas, setPersonas] = useState<any[]>([])
   const [name, setName] = useState("")
   const [description, setDescription] = useState("")
 
