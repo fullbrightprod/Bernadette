@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { supabase } from "@/lib/supabaseClient"
-import { useAuthUser } from "@/hooks/useAuthUser"
+import { useAuthUser } from "../../hooks/useAuthUser"
 
 export default function DaPage() {
   const { user, loading } = useAuthUser()
