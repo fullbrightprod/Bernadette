@@ -1,3 +1,5 @@
+"use client" // nécessaire car on utilise Link côté client
+
 import Link from "next/link"
 import { Home, Folder, FileText, HelpCircle, Settings } from "lucide-react"
 
@@ -25,3 +27,4 @@ export function Sidebar() {
     </aside>
   )
 }
+
