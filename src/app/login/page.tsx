@@ -21,7 +21,7 @@ export default function LoginPage() {
       setMessage("❌ " + error.message)
     } else {
       setMessage("Connexion réussie ✅")
-      // ⬅️ Ajout de la redirection après login
+      // ⬅️ redirection automatique vers le Dashboard
       router.push("/")
     }
   }
@@ -32,7 +32,9 @@ export default function LoginPage() {
         onSubmit={handleLogin}
         className="bg-white p-6 rounded shadow-md w-80 flex flex-col gap-4"
       >
-        <h1 className="text-xl font-bold text-[#154C79] text-center">🔐 Authentification</h1>
+        <h1 className="text-xl font-bold text-[#154C79] text-center">
+          🔐 Connexion
+        </h1>
         <input
           type="email"
           placeholder="Email"
