@@ -22,12 +22,7 @@ export default function LoginPage() {
       setMessage("❌ " + error.message)
     } else {
       setMessage("Connexion réussie ✅")
-
-      // ✅ Supabase auth-helpers gère automatiquement les cookies
-      // On attend un peu puis on redirige vers le dashboard
-      setTimeout(() => {
-        router.push("/")
-      }, 800)
+      router.push("/")
     }
   }
 
