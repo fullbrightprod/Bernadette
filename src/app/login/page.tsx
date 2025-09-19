@@ -12,25 +12,22 @@ export default function LoginPage() {
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault()
-    const { data, error } = await supabase.auth.signInWithPassword({
+
+    const { error } = await supabase.auth.signInWithPassword({
       email,
       password,
     })
 
     if (error) {
       setMessage("❌ " + error.message)
-    } else if (data.session) {
-      // ✅ enregistre la session dans Supabase client (cookies)
-      await supabase.auth.setSession({
-        access_token: data.session.access_token,
-        refresh_token: data.session.refresh_token,
-      })
-
-      // ✅ enregistre aussi en localStorage (sécurité supplémentaire)
-      localStorage.setItem("supabase.auth.token", JSON.stringify(data.session))
-
+    } else {
       setMessage("Connexion réussie ✅")
-      router.push("/")
+
+      // ✅ Supabase auth-helpers gère automatiquement les cookies
+      // On attend un peu puis on redirige vers le dashboard
+      setTimeout(() => {
+        router.push("/")
+      }, 800)
     }
   }
 
@@ -49,6 +46,7 @@ export default function LoginPage() {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           className="border p-2 rounded"
+          required
         />
         <input
           type="password"
@@ -56,6 +54,7 @@ export default function LoginPage() {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           className="border p-2 rounded"
+          required
         />
         <button
           type="submit"
