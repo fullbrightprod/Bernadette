@@ -12,25 +12,36 @@ export default function LoginPage() {
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
+    console.log("🟢 Formulaire soumis");
 
-    console.log("🔑 Tentative login avec :", email);
+    try {
+      console.log("🔑 Tentative login avec :", email);
 
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
 
-    console.log("📡 Résultat Supabase Auth:", { data, error });
+      console.log("📡 Résultat Supabase Auth:", { data, error });
 
-    if (error) {
-      setMessage("❌ " + error.message);
-    } else if (data?.session) {
-      setMessage("Connexion réussie ✅");
-      console.log("✅ Session reçue :", data.session);
-      console.log("👤 Utilisateur :", data.user);
-      router.push("/persona"); // redirection après login
-    } else {
-      setMessage("⚠️ Pas de session reçue");
+      if (error) {
+        console.error("❌ Erreur Supabase:", error);
+        setMessage("❌ " + error.message);
+        return;
+      }
+
+      if (data?.session) {
+        console.log("✅ Session reçue :", data.session);
+        console.log("👤 Utilisateur :", data.user);
+        setMessage("Connexion réussie ✅");
+        router.push("/persona"); // redirection après login
+      } else {
+        console.warn("⚠️ Pas de session reçue");
+        setMessage("⚠️ Pas de session reçue");
+      }
+    } catch (err: any) {
+      console.error("💥 Exception JS:", err);
+      setMessage("💥 " + err.message);
     }
   }
 
