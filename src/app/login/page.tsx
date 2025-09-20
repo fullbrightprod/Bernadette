@@ -2,35 +2,32 @@
 
 import { useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
+import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
+  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [result, setResult] = useState<any>(null);
+  const [message, setMessage] = useState("");
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
-    console.log("🟢 Tentative de connexion…");
 
-    try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
+    setMessage("⏳ Connexion en cours…");
 
-      console.log("📡 Login result:", { data, error });
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
 
-      if (error) {
-        setResult({ error: error.message });
-      } else {
-        setResult({
-          user: data.user,
-          session: data.session,
-        });
-      }
-    } catch (err: any) {
-      console.error("💥 Exception JS:", err);
-      setResult({ exception: err.message });
+    if (error) {
+      console.error("❌ Login error:", error.message);
+      setMessage("❌ " + error.message);
+    } else if (data.session) {
+      console.log("✅ Login OK, session:", data.session);
+      setMessage("Connexion réussie ✅");
+      // 👉 redirige vers la page Personas (ou dashboard)
+      router.push("/persona");
     }
   }
 
@@ -41,7 +38,7 @@ export default function LoginPage() {
         className="bg-white p-6 rounded shadow-md w-96 flex flex-col gap-4"
       >
         <h1 className="text-xl font-bold text-[#154C79] text-center">
-          🔐 Connexion (mode debug)
+          🔐 Connexion
         </h1>
         <input
           type="email"
@@ -65,13 +62,7 @@ export default function LoginPage() {
         >
           Se connecter
         </button>
-
-        {/* ✅ Affiche le résultat du login */}
-        {result && (
-          <pre className="mt-4 p-2 text-xs bg-gray-50 rounded border overflow-auto max-h-64">
-            {JSON.stringify(result, null, 2)}
-          </pre>
-        )}
+        {message && <p className="text-center text-sm">{message}</p>}
       </form>
     </div>
   );

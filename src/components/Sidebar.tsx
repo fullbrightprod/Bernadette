@@ -15,18 +15,13 @@ export function Sidebar() {
   useEffect(() => {
     async function loadSession() {
       console.log("📌 Sidebar mounted, checking session…")
-      const { data, error } = await supabase.auth.getSession()
+      const { data } = await supabase.auth.getSession()
 
-      console.log("🔎 Session check result:", { data, error })
-
-      if (!data?.session?.user) {
-        console.log("⚠️ Aucun utilisateur connecté, pathname=", window.location.pathname)
-        if (window.location.pathname !== "/login") {
-          router.push("/login")
-        }
-      } else {
-        console.log("✅ Utilisateur trouvé:", data.session.user.email)
+      if (data?.session?.user) {
+        console.log("✅ Session trouvée:", data.session.user.email)
         setEmail(data.session.user.email ?? null)
+      } else {
+        console.log("ℹ️ Aucune session initiale (peut être normal avant login)")
       }
 
       setLoading(false)
@@ -34,12 +29,19 @@ export function Sidebar() {
 
     loadSession()
 
-    // ✅ écoute les changements d’auth (login/logout)
-    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
-      console.log("🔄 Auth state changed:", _event, session)
-      if (session?.user) {
+    // ✅ écoute login/logout
+    const { data: listener } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log("🔄 Auth state changed:", event, session)
+
+      if (event === "SIGNED_IN" && session?.user) {
         setEmail(session.user.email ?? null)
-      } else {
+        // si on est sur /login → redirige vers /persona
+        if (window.location.pathname === "/login") {
+          router.push("/persona")
+        }
+      }
+
+      if (event === "SIGNED_OUT") {
         setEmail(null)
         if (window.location.pathname !== "/login") {
           router.push("/login")
@@ -55,10 +57,7 @@ export function Sidebar() {
   async function handleLogout() {
     await supabase.auth.signOut()
     setEmail(null)
-    console.log("👋 Déconnexion, redirection vers /login")
-    if (window.location.pathname !== "/login") {
-      router.push("/login")
-    }
+    console.log("👋 Déconnexion")
   }
 
   if (loading) {
