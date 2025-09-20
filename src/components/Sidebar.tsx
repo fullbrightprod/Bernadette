@@ -14,54 +14,31 @@ export function Sidebar() {
 
   useEffect(() => {
     async function loadSession() {
-      console.log("📌 Sidebar mounted, checking session…")
       const { data } = await supabase.auth.getSession()
-
       if (data?.session?.user) {
-        console.log("✅ Session trouvée:", data.session.user.email)
         setEmail(data.session.user.email ?? null)
-
-        // 🔥 Si on est déjà loggué et qu’on est sur /login → on redirige immédiatement
-        if (window.location.pathname.startsWith("/login")) {
-          router.replace("/persona")
-        }
-      } else {
-        console.log("ℹ️ Pas de session initiale (on attend onAuthStateChange)")
       }
-
       setLoading(false)
     }
 
     loadSession()
 
-    // ✅ écoute login/logout
-    const { data: listener } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log("🔄 Auth state changed:", event, session)
-
-      if (event === "SIGNED_IN" && session?.user) {
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) {
         setEmail(session.user.email ?? null)
-        if (window.location.pathname.startsWith("/login")) {
-          router.replace("/persona")
-        }
-      }
-
-      if (event === "SIGNED_OUT") {
+      } else {
         setEmail(null)
-        if (!window.location.pathname.startsWith("/login")) {
-          router.replace("/login")
-        }
       }
     })
 
     return () => {
       listener.subscription.unsubscribe()
     }
-  }, [router])
+  }, [])
 
   async function handleLogout() {
     await supabase.auth.signOut()
     setEmail(null)
-    console.log("👋 Déconnexion")
     router.replace("/login")
   }
 

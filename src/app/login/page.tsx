@@ -24,11 +24,11 @@ export default function LoginPage() {
       console.error("❌ Login error:", error.message);
       setMessage("❌ " + error.message);
     } else if (data.session) {
-      console.log("✅ Login OK, session:", data.session);
+      console.log("✅ Login OK:", data);
       setMessage("Connexion réussie ✅");
 
-      // 🔥 Redirection immédiate
-      router.replace("/persona"); // replace = supprime /login de l’historique
+      // 👉 Affiche directement le dashboard ("/")
+      router.replace("/");
     }
   }
 
