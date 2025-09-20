@@ -1,10 +1,5 @@
-import { createClient } from "@supabase/supabase-js";
+import { supabase } from "@/lib/supabaseClient";
 import { Persona, PersonaRow } from "@/types/persona";
-
-export const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
 
 const TABLE = "personas";
 
@@ -110,32 +105,19 @@ export async function fetchPersonas(): Promise<Persona[]> {
 }
 
 export async function createPersona(values: Persona): Promise<Persona> {
-  const { data: userData, error: userError } = await supabase.auth.getUser();
-  if (userError || !userData?.user) throw new Error("Utilisateur non connecté");
-
+  const { data: auth, error: userError } = await supabase.auth.getUser();
+  if (userError || !auth?.user) throw new Error("Utilisateur non connecté");
   const payload = toRow(values);
-
-  // 🚀 Log complet du payload
-  console.log(
-    "🚀 Payload envoyé à Supabase:",
-    JSON.stringify({ ...payload, user_id: userData.user.id }, null, 2)
-  );
-
-  const { data: inserted, error } = await supabase
-    .from(TABLE)
-    .insert([{ ...payload, user_id: userData.user.id }])
-    .select()
-    .single();
-
+  const { data, error } = await supabase.from(TABLE).insert([{ ...payload, user_id: auth.user.id }]).select().single();
   if (error) throw error;
-  return fromRow(inserted as PersonaRow);
+  return fromRow(data as PersonaRow);
 }
 
 export async function updatePersona(id: string, values: Persona): Promise<Persona> {
   const payload = toRow(values);
-  const { data: updated, error } = await supabase.from(TABLE).update(payload).eq("id", id).select().single();
+  const { data, error } = await supabase.from(TABLE).update(payload).eq("id", id).select().single();
   if (error) throw error;
-  return fromRow(updated as PersonaRow);
+  return fromRow(data as PersonaRow);
 }
 
 export async function deletePersona(id: string): Promise<void> {
