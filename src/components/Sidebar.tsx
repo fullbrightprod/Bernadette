@@ -21,9 +21,10 @@ export function Sidebar() {
         console.log("✅ Session trouvée:", data.session.user.email)
         setEmail(data.session.user.email ?? null)
       } else {
-        console.log("ℹ️ Aucune session initiale (peut être normal avant login)")
+        console.log("ℹ️ Pas de session initiale (on attend onAuthStateChange)")
       }
 
+      // ⚠️ Très important : on ne redirige pas ici
       setLoading(false)
     }
 
@@ -35,16 +36,15 @@ export function Sidebar() {
 
       if (event === "SIGNED_IN" && session?.user) {
         setEmail(session.user.email ?? null)
-        // si on est sur /login → redirige vers /persona
         if (window.location.pathname === "/login") {
-          router.push("/persona")
+          router.replace("/persona") // replace pour éviter retour en arrière
         }
       }
 
       if (event === "SIGNED_OUT") {
         setEmail(null)
         if (window.location.pathname !== "/login") {
-          router.push("/login")
+          router.replace("/login")
         }
       }
     })
@@ -58,6 +58,7 @@ export function Sidebar() {
     await supabase.auth.signOut()
     setEmail(null)
     console.log("👋 Déconnexion")
+    router.replace("/login")
   }
 
   if (loading) {

@@ -26,8 +26,9 @@ export default function LoginPage() {
     } else if (data.session) {
       console.log("✅ Login OK, session:", data.session);
       setMessage("Connexion réussie ✅");
-      // 👉 redirige vers la page Personas (ou dashboard)
-      router.push("/persona");
+
+      // 🔥 Redirection immédiate
+      router.replace("/persona"); // replace = supprime /login de l’historique
     }
   }
 
