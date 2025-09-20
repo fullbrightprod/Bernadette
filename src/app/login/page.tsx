@@ -1,28 +1,36 @@
-"use client"
+"use client";
 
-import { useRouter } from "next/navigation"
-import { useState } from "react"
-import { supabase } from "@/lib/supabaseClient"
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { supabase } from "@/lib/supabaseClient";
 
 export default function LoginPage() {
-  const router = useRouter()
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const [message, setMessage] = useState("")
+  const router = useRouter();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [message, setMessage] = useState("");
 
   async function handleLogin(e: React.FormEvent) {
-    e.preventDefault()
+    e.preventDefault();
 
-    const { error } = await supabase.auth.signInWithPassword({
+    console.log("🔑 Tentative login avec :", email);
+
+    const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
-    })
+    });
+
+    console.log("📡 Résultat Supabase Auth:", { data, error });
 
     if (error) {
-      setMessage("❌ " + error.message)
+      setMessage("❌ " + error.message);
+    } else if (data?.session) {
+      setMessage("Connexion réussie ✅");
+      console.log("✅ Session reçue :", data.session);
+      console.log("👤 Utilisateur :", data.user);
+      router.push("/persona"); // redirection après login
     } else {
-      setMessage("Connexion réussie ✅")
-      router.push("/")
+      setMessage("⚠️ Pas de session reçue");
     }
   }
 
@@ -60,5 +68,5 @@ export default function LoginPage() {
         {message && <p className="text-center">{message}</p>}
       </form>
     </div>
-  )
+  );
 }
