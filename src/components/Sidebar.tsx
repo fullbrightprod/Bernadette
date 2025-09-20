@@ -20,11 +20,15 @@ export function Sidebar() {
       if (data?.session?.user) {
         console.log("✅ Session trouvée:", data.session.user.email)
         setEmail(data.session.user.email ?? null)
+
+        // 🔥 Si on est déjà loggué et qu’on est sur /login → on redirige immédiatement
+        if (window.location.pathname.startsWith("/login")) {
+          router.replace("/persona")
+        }
       } else {
         console.log("ℹ️ Pas de session initiale (on attend onAuthStateChange)")
       }
 
-      // ⚠️ Très important : on ne redirige pas ici
       setLoading(false)
     }
 
@@ -36,7 +40,6 @@ export function Sidebar() {
 
       if (event === "SIGNED_IN" && session?.user) {
         setEmail(session.user.email ?? null)
-        // 🔥 Vérifie que l’URL commence par /login (même avec ?_rsc=...)
         if (window.location.pathname.startsWith("/login")) {
           router.replace("/persona")
         }
@@ -74,7 +77,6 @@ export function Sidebar() {
     <div className="w-64 bg-[#154C79] text-white flex flex-col p-4 min-h-screen">
       <h1 className="text-2xl font-bold mb-6">📊 Bernadette</h1>
 
-      {/* ✅ Email utilisateur connecté */}
       {email && (
         <div className="mb-6 text-sm bg-[#123a5f] p-2 rounded">
           Connecté en tant que<br />
@@ -82,7 +84,6 @@ export function Sidebar() {
         </div>
       )}
 
-      {/* Menu principal */}
       <nav className="flex-1 space-y-2">
         <Link href="/" className="flex items-center gap-2 hover:bg-[#123a5f] p-2 rounded">
           <Home size={18} /> Dashboard
@@ -101,7 +102,6 @@ export function Sidebar() {
         </Link>
       </nav>
 
-      {/* Bas de sidebar */}
       <div className="mt-auto space-y-2">
         <button
           onClick={handleLogout}
