@@ -1,0 +1,15 @@
+do $$
+declare
+  tbl record;
+begin
+  -- Boucle sur toutes les tables utilisateur du schéma public
+  for tbl in
+    select tablename
+    from pg_tables
+    where schemaname = 'public'
+  loop
+    -- On ajoute puis supprime une colonne temporaire sur chaque table
+    execute format('alter table public.%I add column if not exists tmp_refresh int;', tbl.tablename);
+    execute format('alter table public.%I drop column if exists tmp_refresh;', tbl.tablename);
+  end loop;
+end$$;

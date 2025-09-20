@@ -1,77 +1,168 @@
-"use client"
+"use client";
 
-import { useEffect, useState } from "react"
-import { supabase } from "@/lib/supabaseClient"
-import { useAuthUser } from "../../hooks/useAuthUser"
-type Persona = {
-  id: string
-  name: string
-  description: string
-  user_id: string
-}
+import { useEffect, useMemo, useState } from "react";
+import PersonaForm, { emptyPersona } from "@/components/PersonaForm";
+import { Persona } from "@/types/persona";
+import { fetchPersonas, createPersona, updatePersona, deletePersona } from "@/lib/personaService";
 
-
-
-export default function PersonaPage() {
-  const [personas, setPersonas] = useState<Persona[]>([]) // ✅ plus de any
-  const { user, loading } = useAuthUser()
-  const [name, setName] = useState("")
-  const [description, setDescription] = useState("")
+export default function PersonasPage() {
+  const [personas, setPersonas] = useState<Persona[]>([]);
+  const [open, setOpen] = useState(false);
+  const [editing, setEditing] = useState<Persona | null>(null);
+  const [query, setQuery] = useState("");
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (user) fetchPersonas()
-  }, [user])
+    fetchPersonas()
+      .then(setPersonas)
+      .catch((err) => {
+        console.error("Erreur chargement personas", err);
+        alert("Problème de chargement. Êtes-vous connecté ?");
+      })
+      .finally(() => setLoading(false));
+  }, []);
 
-  async function fetchPersonas() {
-    const { data, error } = await supabase.from("personas").select("*")
-    if (!error && data) setPersonas(data)
-  }
+  const filtered = useMemo(() => {
+    const q = query.toLowerCase();
+    if (!q) return personas;
+    return personas.filter((p) =>
+      [p.name, p.jobTitle, p.sector, p.topGoal ?? "", p.topFrustration ?? ""]
+        .filter(Boolean)
+        .some((v) => (v as string).toLowerCase().includes(q))
+    );
+  }, [personas, query]);
 
-  async function addPersona(e: React.FormEvent) {
-    e.preventDefault()
-    if (!user) return
-
-    const { error } = await supabase.from("personas").insert([
-      { name, description, user_id: user.id }
-    ])
-    if (!error) {
-      setName("")
-      setDescription("")
-      fetchPersonas()
+  async function handleSave(p: Persona) {
+    try {
+      if (editing) {
+        const updated = await updatePersona(editing.id, p);
+        setPersonas((prev) => prev.map((x) => (x.id === editing.id ? updated : x)));
+      } else {
+        const created = await createPersona(p); // ignore front id, DB génère un uuid
+        setPersonas((prev) => [created, ...prev]);
+      }
+      setOpen(false);
+      setEditing(null);
+    } catch (err: any) {
+      console.error(err);
+      alert(err?.message || "Erreur lors de l'enregistrement du persona");
     }
   }
 
-  if (loading) return <p className="p-6">Chargement...</p>
+  async function handleDelete(id: string) {
+    if (!confirm("Supprimer ce persona ?")) return;
+    try {
+      await deletePersona(id);
+      setPersonas((prev) => prev.filter((p) => p.id !== id));
+    } catch (err) {
+      console.error(err);
+      alert("Erreur lors de la suppression");
+    }
+  }
 
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold mb-4">👤 Personas</h1>
-      <form onSubmit={addPersona} className="flex flex-col gap-2 mb-4">
-        <input
-          type="text"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          placeholder="Nom"
-          className="border p-2 rounded"
-        />
-        <textarea
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          placeholder="Description"
-          className="border p-2 rounded"
-        />
-        <button className="bg-[#154C79] text-white px-4 py-2 rounded">
-          Ajouter
-        </button>
-      </form>
-      <ul className="space-y-2">
-        {personas.map((p) => (
-          <li key={p.id} className="p-2 bg-gray-100 rounded">
-            <strong>{p.name}</strong><br />
-            <span className="text-sm">{p.description}</span>
-          </li>
-        ))}
-      </ul>
+    <div className="mx-auto max-w-6xl px-4 py-8">
+      <header className="mb-8">
+        <h1 className="text-3xl font-bold">Personas</h1>
+        <p className="mt-2 text-sm text-muted-foreground">
+          Un persona est une représentation semi-fictive de votre client idéal. Bien défini, il devient la
+          boussole de votre marketing (réseaux sociaux, email, publicité, contenu) et aligne vos messages
+          sur les besoins réels de vos clients.
+        </p>
+        <div className="mt-4 flex flex-wrap items-center gap-3">
+          <button
+            onClick={() => {
+              setEditing(null);
+              setOpen(true);
+            }}
+            className="rounded-2xl bg-black px-4 py-2 text-white shadow hover:opacity-90"
+          >
+            + Créer un persona
+          </button>
+          <input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Rechercher (nom, métier, secteur, objectif, frustration)"
+            className="min-w-[260px] flex-1 rounded-xl border px-3 py-2"
+          />
+        </div>
+      </header>
+
+      {/* Drawer Create / Edit */}
+      {open && (
+        <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/40 p-4">
+          <div className="max-h-[90vh] w-full max-w-3xl overflow-auto rounded-2xl bg-white p-4 shadow-xl">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-semibold">
+                {editing ? `Modifier persona — ${editing.name || editing.jobTitle || "Sans titre"}` : "Créer un persona"}
+              </h2>
+              <button
+                onClick={() => {
+                  setOpen(false);
+                  setEditing(null);
+                }}
+                className="rounded-full p-2 hover:bg-gray-100"
+                aria-label="Fermer"
+              >
+                ✕
+              </button>
+            </div>
+
+            <PersonaForm
+              key={editing?.id || "new"}
+              initialData={editing || emptyPersona()}
+              onCancel={() => {
+                setOpen(false);
+                setEditing(null);
+              }}
+              onSubmit={handleSave}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* List */}
+      {loading ? (
+        <p className="mt-8 text-sm text-muted-foreground">Chargement...</p>
+      ) : filtered.length === 0 ? (
+        <div className="mt-8 rounded-xl border p-8 text-center text-sm text-muted-foreground">
+          Aucun persona pour l’instant. Cliquez sur « Créer un persona » pour commencer.
+        </div>
+      ) : (
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {filtered.map((p) => (
+            <article key={p.id} className="group relative rounded-2xl border p-4 shadow-sm transition hover:shadow-md">
+              <div className="mb-3 flex items-start justify-between gap-2">
+                <div>
+                  <h3 className="text-lg font-semibold">{p.name || p.jobTitle || "Persona sans titre"}</h3>
+                  <p className="text-xs text-muted-foreground">{p.jobTitle} • {p.sector}</p>
+                </div>
+                <div className="flex gap-1 opacity-0 transition group-hover:opacity-100">
+                  <button
+                    onClick={() => { setEditing(p); setOpen(true); }}
+                    className="rounded-md border px-2 py-1 text-xs hover:bg-gray-50"
+                    title="Modifier"
+                  >✏️</button>
+                  <button
+                    onClick={() => handleDelete(p.id)}
+                    className="rounded-md border px-2 py-1 text-xs hover:bg-gray-50"
+                    title="Supprimer"
+                  >🗑️</button>
+                </div>
+              </div>
+
+              <div className="mb-3 flex flex-wrap gap-2">
+                {p.topGoal && <span className="rounded-full bg-emerald-50 px-2 py-1 text-[11px] text-emerald-700">🎯 {p.topGoal}</span>}
+                {p.topFrustration && <span className="rounded-full bg-rose-50 px-2 py-1 text-[11px] text-rose-700">⚠️ {p.topFrustration}</span>}
+                {p.preferredChannels?.[0] && <span className="rounded-full bg-indigo-50 px-2 py-1 text-[11px] text-indigo-700">📣 {p.preferredChannels[0]}</span>}
+              </div>
+
+              {p.shortBio && <p className="line-clamp-3 text-sm text-muted-foreground">{p.shortBio}</p>}
+              {p.quote && <blockquote className="mt-2 border-l-2 pl-2 text-xs italic text-gray-600">“{p.quote}”</blockquote>}
+            </article>
+          ))}
+        </div>
+      )}
     </div>
-  )
+  );
 }
