@@ -13,26 +13,30 @@ export function Sidebar() {
   const router = useRouter()
 
   useEffect(() => {
-    async function loadUser() {
-      const { data: { user } } = await supabase.auth.getUser()
+    async function loadSession() {
+      console.log("📌 Sidebar mounted, checking session…")
+      const { data, error } = await supabase.auth.getSession()
 
-      if (!user) {
-        setEmail(null)
-        // ✅ Empêche la redirection si on est déjà sur /login
+      console.log("🔎 Session check result:", { data, error })
+
+      if (!data?.session?.user) {
+        console.log("⚠️ Aucun utilisateur connecté, pathname=", window.location.pathname)
         if (window.location.pathname !== "/login") {
           router.push("/login")
         }
       } else {
-        setEmail(user.email ?? null)
+        console.log("✅ Utilisateur trouvé:", data.session.user.email)
+        setEmail(data.session.user.email ?? null)
       }
 
       setLoading(false)
     }
 
-    loadUser()
+    loadSession()
 
     // ✅ écoute les changements d’auth (login/logout)
     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+      console.log("🔄 Auth state changed:", _event, session)
       if (session?.user) {
         setEmail(session.user.email ?? null)
       } else {
@@ -51,6 +55,7 @@ export function Sidebar() {
   async function handleLogout() {
     await supabase.auth.signOut()
     setEmail(null)
+    console.log("👋 Déconnexion, redirection vers /login")
     if (window.location.pathname !== "/login") {
       router.push("/login")
     }
