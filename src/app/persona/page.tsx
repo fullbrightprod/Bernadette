@@ -24,13 +24,18 @@ export default function PersonasPage() {
 
   // ✅ Étape 1 : vérifier si l’utilisateur est connecté
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
+    async function checkAuth() {
+      const { data } = await supabase.auth.getUser();
       if (!data?.user) {
-        router.push("/login");
+        // 👉 Empêche la boucle infinie quand on est déjà sur /login
+        if (window.location.pathname !== "/login") {
+          router.push("/login");
+        }
       } else {
         setCheckingAuth(false); // utilisateur trouvé → on continue
       }
-    });
+    }
+    checkAuth();
   }, [router]);
 
   // ✅ Étape 2 : charger les personas seulement si auth OK
