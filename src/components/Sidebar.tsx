@@ -36,14 +36,15 @@ export function Sidebar() {
 
       if (event === "SIGNED_IN" && session?.user) {
         setEmail(session.user.email ?? null)
-        if (window.location.pathname === "/login") {
-          router.replace("/persona") // replace pour éviter retour en arrière
+        // 🔥 Vérifie que l’URL commence par /login (même avec ?_rsc=...)
+        if (window.location.pathname.startsWith("/login")) {
+          router.replace("/persona")
         }
       }
 
       if (event === "SIGNED_OUT") {
         setEmail(null)
-        if (window.location.pathname !== "/login") {
+        if (!window.location.pathname.startsWith("/login")) {
           router.replace("/login")
         }
       }
