@@ -18,9 +18,12 @@ export function Sidebar() {
 
       if (!user) {
         setEmail(null)
-        router.push("/login")
+        // ✅ Empêche la redirection si on est déjà sur /login
+        if (window.location.pathname !== "/login") {
+          router.push("/login")
+        }
       } else {
-        setEmail(user.email ?? null) // ✅ évite undefined
+        setEmail(user.email ?? null)
       }
 
       setLoading(false)
@@ -31,10 +34,12 @@ export function Sidebar() {
     // ✅ écoute les changements d’auth (login/logout)
     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session?.user) {
-        setEmail(session.user.email ?? null) // ✅ évite undefined
+        setEmail(session.user.email ?? null)
       } else {
         setEmail(null)
-        router.push("/login")
+        if (window.location.pathname !== "/login") {
+          router.push("/login")
+        }
       }
     })
 
@@ -45,8 +50,10 @@ export function Sidebar() {
 
   async function handleLogout() {
     await supabase.auth.signOut()
-    setEmail(null) // ✅ efface tout de suite l’email
-    router.push("/login")
+    setEmail(null)
+    if (window.location.pathname !== "/login") {
+      router.push("/login")
+    }
   }
 
   if (loading) {
