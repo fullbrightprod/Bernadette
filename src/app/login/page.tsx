@@ -1,47 +1,36 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 
 export default function LoginPage() {
-  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [message, setMessage] = useState("");
+  const [result, setResult] = useState<any>(null);
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
-    console.log("🟢 Formulaire soumis");
+    console.log("🟢 Tentative de connexion…");
 
     try {
-      console.log("🔑 Tentative login avec :", email);
-
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
-      console.log("📡 Résultat Supabase Auth:", { data, error });
+      console.log("📡 Login result:", { data, error });
 
       if (error) {
-        console.error("❌ Erreur Supabase:", error);
-        setMessage("❌ " + error.message);
-        return;
-      }
-
-      if (data?.session) {
-        console.log("✅ Session reçue :", data.session);
-        console.log("👤 Utilisateur :", data.user);
-        setMessage("Connexion réussie ✅");
-        router.push("/persona"); // redirection après login
+        setResult({ error: error.message });
       } else {
-        console.warn("⚠️ Pas de session reçue");
-        setMessage("⚠️ Pas de session reçue");
+        setResult({
+          user: data.user,
+          session: data.session,
+        });
       }
     } catch (err: any) {
       console.error("💥 Exception JS:", err);
-      setMessage("💥 " + err.message);
+      setResult({ exception: err.message });
     }
   }
 
@@ -49,10 +38,10 @@ export default function LoginPage() {
     <div className="flex items-center justify-center min-h-screen bg-gray-100">
       <form
         onSubmit={handleLogin}
-        className="bg-white p-6 rounded shadow-md w-80 flex flex-col gap-4"
+        className="bg-white p-6 rounded shadow-md w-96 flex flex-col gap-4"
       >
         <h1 className="text-xl font-bold text-[#154C79] text-center">
-          🔐 Connexion
+          🔐 Connexion (mode debug)
         </h1>
         <input
           type="email"
@@ -76,7 +65,13 @@ export default function LoginPage() {
         >
           Se connecter
         </button>
-        {message && <p className="text-center">{message}</p>}
+
+        {/* ✅ Affiche le résultat du login */}
+        {result && (
+          <pre className="mt-4 p-2 text-xs bg-gray-50 rounded border overflow-auto max-h-64">
+            {JSON.stringify(result, null, 2)}
+          </pre>
+        )}
       </form>
     </div>
   );
